@@ -27,12 +27,38 @@ export const sendMessage = async (req, res) => {
       conversation.messages.push(newMessage._id);
     }
 
-    await conversation.save();
-    await newMessage.save();
+    // Socket.io functionality
+
+    // Chạy lần lượt
+    //  await conversation.save();
+    //  await newMessage.save();
+
+    // Chạy song song
+    await Promise.all([conversation.save(), newMessage.save()]);
 
     res.status(201).json({ newMessage });
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
-    console.log("Send message error", error.message);
+    console.log("Send messages error", error.message);
+  }
+};
+
+export const getMessages = async (req, res) => {
+  try {
+    const { id: userChatId } = req.params;
+    const senderId = req.user._id;
+
+    const conversation = await Conversation.findOne({
+      participants: { $all: [senderId, userChatId] },
+    }).populate("messages"); // to get each message as an object, not the whole message array
+
+    if (!conversation) return res.status(200).json([]);
+
+    const messages = conversation.messages;
+
+    res.status(200).json(messages);
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+    console.log("Get messages error", error.message);
   }
 };
