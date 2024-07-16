@@ -27,14 +27,14 @@ export const sendMessage = async (req, res) => {
       conversation.messages.push(newMessage._id);
     }
 
-    // Socket.io functionality
+    // Socket.io
 
     // Chạy lần lượt
-    //  await conversation.save();
-    //  await newMessage.save();
+    await conversation.save();
+    await newMessage.save();
 
     // Chạy song song
-    await Promise.all([conversation.save(), newMessage.save()]);
+    // await Promise.all([conversation.save(), newMessage.save()]);
 
     res.status(201).json({ newMessage });
   } catch (error) {
