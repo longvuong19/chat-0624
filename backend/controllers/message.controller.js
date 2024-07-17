@@ -1,5 +1,6 @@
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
+import { getReceiverSocketId, io } from "../socket/socket.js";
 
 export const sendMessage = async (req, res) => {
   try {
@@ -27,14 +28,19 @@ export const sendMessage = async (req, res) => {
       conversation.messages.push(newMessage._id);
     }
 
-    // Socket.io
-
     // Chạy lần lượt
     await conversation.save();
     await newMessage.save();
 
     // Chạy song song
     // await Promise.all([conversation.save(), newMessage.save()]);
+
+    // Socket.io
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      // io.to(<socket_id>).emit() gửi event tới một client nhất định
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+    }
 
     res.status(201).json({ newMessage });
   } catch (error) {
